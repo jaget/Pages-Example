@@ -32,8 +32,13 @@ module.exports.routes = {
   *                                                                          *
   ***************************************************************************/
 
-  '/': {
-    view: 'homepage'
+  'get /:slug': {
+    controller: 'PageController',
+    action: 'bySlug'
+  },
+  'get /': {
+    controller: 'PageController',
+    action: 'bySlug'
   }
 
   /***************************************************************************
