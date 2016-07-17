@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html  ng-app="myApp">
+<head>
+
+    <base href="/">
+    <link rel="icon" href="favicon.ico" type="image/x-icon" />
+    <title seo-title>{{ currentPage.title }}</title>
+    <meta seo-keywords name="keywords" content="{{ currentPage.keywords }}" />
+    <meta seo-description name="description" content="{{ currentPage.description }}" />
+
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">{# /* Viewport mobile tag for sensible mobile support */ #}
+    {# /*
+     Stylesheets and Preprocessors
+     ==============================
+
+        You can always bring in CSS files manually with `<link>` tags, or asynchronously
+        using a solution like AMD (RequireJS).  Or, if you like, you can take advantage
+        of Sails' conventional asset pipeline (boilerplate Gruntfile).
+
+        By default, stylesheets from your `assets/styles` folder are included
+        here automatically (between STYLES and STYLES END). Both CSS (.css) and LESS (.less)
+        are supported. In production, your styles will be minified and concatenated into
+        a single file.
+
+        To customize any part of the built-in behavior, just edit `tasks/pipeline.js`.
+        For example, here are a few things you could do:
+
+         + Change the order of your CSS files
+         + Import stylesheets from other directories
+         + Use a different or additional preprocessor, like SASS, SCSS or Stylus
+        */ #}
+    <link rel="stylesheet" href="/css/styles.css">
+    <script>
+        //            (function(i,s,o,g,r,a,m){i['GoogleAnalyticsObject']=r;i[r]=i[r]||function(){
+        //                        (i[r].q=i[r].q||[]).push(arguments)},i[r].l=1*new Date();a=s.createElement(o),
+        //                    m=s.getElementsByTagName(o)[0];a.async=1;a.src=g;m.parentNode.insertBefore(a,m)
+        //            })(window,document,'script','//www.google-analytics.com/analytics.js','ga');
+        //            ga('create', 'UA-75611319-1', { 'cookieDomain': 'none' });
+    </script>
+</head>
+<body>
+<header ng-controller="NavController" >
+    <div>
+        <nav ng-class="{'closed': !Nav.getIsClosed()}">
+            <div class="logo">
+                <a href="/">
+                    <img src="images/logos/applogo.png" alt="Home Logo"/>
+                    <span class="screen-reader">Home</span>
+                </a>
+                <h6>Beau Pro Shop</h6>
+            </div>
+            <div class="links">
+                <span ng-if="!orm.fetch('page').length > 0">
+                    <ul>
+                        {% for page in res.navPageList.childPages %}
+                            {% include "nav.njk" %}
+                        {% endfor %}
+                    </ul>
+                </span>
+                <ul>
+                    <li>
+                        <a href="/account" ng-if="Auth.hasRole(CurrentUser.user().roles, 'member')">Go to account</a>
+                    </li>
+                    <li ng-repeat="page in pagesByParentID() | pageByLocation:'header' | orderBy: 'menuOrder'">
+                        <a href="/{{ '{{ page.slug }}' }}" ng-show="page.content.length > 0">{{ '{{  page.title }}' }}</a>
+                        <a ng-hide="page.content.length > 0" toggle-parent-class="open">{{ '{{  page.title }}' }}</a>
+                        <div class="childPageToggler" toggle-parent-class="open" ng-if="pagesByParentID(page.id).length > 0"></div>
+                        <ul ng-show="pagesByParentID(page.id).length > 0">
+                            <li ng-repeat="cp in pagesByParentID(page.id) | subMenuOrder ">
+                                <a ng-show="cp.content.length > 0" href="/{{ '{{ cp.slug }}' }}">{{ '{{ cp.title }}' }}</a>
+                                <a ng-hide="cp.content.length > 0" toggle-parent-class="open">{{ '{{ cp.title }}' }}</a>
+                                <div class="childPageToggler" toggle-parent-class="open" ng-if="pagesByParentID(cp.id).length > 0"></div>
+                                <ul ng-if="pagesByParentID(cp.id).length > 0">
+                                    <li ng-repeat="gcp in pagesByParentID(cp.id)"><a href="/{{ '{{  gcp.slug }}' }}">{{ '{{ gcp.title }}' }}</a></li>
+                                </ul>
+                            </li>
+                        </ul>
+                    </li>
+                </ul>
+            </div>
+        </nav>
+    </div>
+    <div ng-click="Nav.toggleNav()" class="navToggler" ng-class="{'toggled': Nav.getIsClosed()}"></div>
+    </div>
+</header>
+<main ng-controller="PageBodyCtrl">
+    <div ng-if="!orm.fetch('page').length > 0">{% block body %}{% endblock %}</div>
+    <div  ui-view></div>
+</main>
+<aside>
+    <div ng-controller="AdminPanelCtrl" ng-show="CurrentUser.user().roles.indexOf('admin') > -1" class="adminPanel">
+        <div>
+            <a href="/admin/pages">Admin pages</a>
+            <a href="/admin/users">Admin users</a>
+        </div>
+        <div ng-controller="fileUploadCtrl">
+            <div class="row">
+                <label for="fileToUpload">Select a File to Upload</label><br />
+                <input type="file" ng-model-instant id="fileToUpload" multiple onchange="angular.element(this).scope().setFiles(this)" />
+            </div>
+            <div id="dropbox" class="dropbox" ng-class="dropClass"><span>{{ '{{ dropText }}' }}</span>
+                <div>{{ '{{ files.length }}' }} files in queue</div>
+                <div>{{ '{{ totalSize() | number:2 }}' }}</div>
+                <input type="button" ng-click="uploadFile()" value="Upload" />
+                <div ng-show="progressVisible">
+                    <div class="percent">{{ '{{ progress }}' }}%</div>
+                    <div class="progress-bar">
+                        <div class="uploaded" ng-style="{'width': progress+'%'}"></div>
+                    </div>
+                </div>
+                <div ng-show="files.length">
+                    <ul ng-repeat="file in files.slice(0)" style="max-height: 300px; overflow: scroll;">
+                        <li>
+                            {{ '{{ file.webkitRelativePath || file.name }}' }}
+                        </li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </div>
+</aside>
+<footer ng-controller="FooterCtrl">
+    <span ng-if="!orm.fetch('page').length > 0">
+        {% for page in navPageList %}
+            <a href="{{ page.slug }}">{{ page.title }}</a>
+        {% if(page.childPages.length > 0) %}
+            <ul>
+            {% for cp in page.childPages %}
+                <li><a href="{{ cp.slug }}">{{ cp.title }}</a></li>
+            {% endfor %}
+        </ul>
+        {% endif %}
+        {% endfor %}
+    </span>
+    <ul>
+        <li ng-repeat="page in pagesByParentID() | pageByLocation:'footer' | orderBy: 'menuOrder'">
+            <a href="/{{ '{{ page.slug }}' }}">{{ '{{ page.title }}' }}</a>
+            <ul ng-if="page.childPages.length > 0">
+                <li ng-repeat="cp in page.childPages"><a href="/{{ '{{ cp.slug }}' }}">{{ '{{ cp.title }}' }}</a></li>
+            </ul>
+        </li>
+    </ul>
+</footer>
+    {#
+    /*
+        Client-side Templates
+        ========================
+
+        HTML templates are important prerequisites of modern, rich client applications.
+        To work their magic, frameworks like Backbone, Angular, Ember, and Knockout require
+        that you load these templates client-side.
+
+        By default, your Gruntfile is configured to automatically load and precompile
+        client-side JST templates in your `assets/templates` folder, then
+        include them here automatically (between TEMPLATES and TEMPLATES END).
+
+        To customize this behavior to fit your needs, just edit `tasks/pipeline.js`.
+        For example, here are a few things you could do:
+
+            + Import templates from other directories
+            + Use a different template engine (handlebars, jade, dust, etc.)
+            + Internationalize your client-side templates using a server-side
+              stringfile before they're served.
+    */
+     /*
+      Client-side Javascript
+      ========================
+
+      You can always bring in JS files manually with `script` tags, or asynchronously
+      on the client using a solution like AMD (RequireJS).  Or, if you like, you can
+      take advantage of Sails' conventional asset pipeline (boilerplate Gruntfile).
+
+      By default, files in your `assets/js` folder are included here
+      automatically (between SCRIPTS and SCRIPTS END).  Both JavaScript (.js) and
+      CoffeeScript (.coffee) are supported. In production, your scripts will be minified
+      and concatenated into a single file.
+
+      To customize any part of the built-in behavior, just edit `tasks/pipeline.js`.
+      For example, here are a few things you could do:
+
+          + Change the order of your scripts
+          + Import scripts from other directories
+          + Use a different preprocessor, like TypeScript
+    */ #}
+    <script src="/js/main.js"></script>
+  </body>
+</html>
