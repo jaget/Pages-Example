@@ -30,7 +30,14 @@ module.exports.views = {
   *                                                                           *
   ****************************************************************************/
 
-  engine: 'ejs',
+  engine: {
+    ext: 'njk',
+    fn: function (name, ctx, cb) {
+      var nunjucks = require('nunjucks');
+      nunjucks.configure('./views');
+      return nunjucks.render(name, ctx, cb);
+    }
+  },
 
 
   /****************************************************************************
