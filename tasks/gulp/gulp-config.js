@@ -8,7 +8,7 @@ module.exports = {
         ],
         js: [
             'assets-source/bower/tinymce-dist/**/*',
-            '!assets-source/bower/tinymce-dist/*'
+            '!axssets-source/bower/tinymce-dist/*'
         ]
     },
     mapsDest: './',
