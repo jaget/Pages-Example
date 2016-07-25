@@ -1,0 +1,27 @@
+<h1>Pages</h1>
+<label for="query">Search List: </label><input type="text" name="query" id="query" ng-model="query" />
+<ul>
+    <li ng-repeat="currentPage in orm.fetch('page') | filter:query track by $index">{{currentPage.id}} - {{currentPage.title}}
+        <a ng-href="/{{ currentPage.slug }}">View {{ currentPage.title }}</a>
+        <button ng-click="editPage(currentPage)">edit</button>
+        <button ng-click="deletePage(currentPage)" class="delete-button">Click to delete</button>
+    </li>
+</ul>
+<div>
+    <form name="editingPageForm" id="pageForm" novalidate >
+        <div class="row">
+            <label for="title">Page title</label>
+            <input type="text" name="title" id="title" ng-model="editingPage.title"/>
+            <label for="slug">Page slug</label>
+            <input type="text" name="slug" id="slug" ng-model="editingPage.slug"/>
+        </div>
+        <div class="row">
+            <div class="col12">
+                <textarea name="content" id="content" cols="30" rows="10" ng-model="editingPage.content"></textarea>
+            </div>
+        </div>
+        <div class="row">
+            <input type="submit" value="Save page" ng-click="savePage()">
+        </div>
+    </form>
+</div>

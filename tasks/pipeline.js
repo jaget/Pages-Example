@@ -30,10 +30,14 @@ var jsFilesToInject = [
 
   // Dependencies like jQuery, or Angular are brought in here
   'assets-source/js/dependencies/**/*.js',
+  'node_modules/angular/angular.min.js',
+  'node_modules/angular-sails/dist/angular-sails.min.js',
+  'node_modules/angular-ui-router/release/angular-ui-router.min.js',
 
   // All of the rest of your client-side js files
   // will be injected here in no particular order.
 
+  'assets-source/js/**/main.js',
   'assets-source/js/**/*.js'
 ];
 
