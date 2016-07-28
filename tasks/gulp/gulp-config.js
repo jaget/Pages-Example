@@ -1,5 +1,5 @@
 module.exports = {
-    proxyUrl: 'localhost:8080',
+    proxyUrl: 'localhost:1337',
     browserRoot: '**/*',
     buildDir: 'assets',
     syncDirSrc: {
